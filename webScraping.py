@@ -34,19 +34,47 @@ class GoogleScholarScraper:
             h_index = h_index_element.text.strip() if h_index_element else "H-Index not found"
             i10_index = i10_index_element.text.strip() if i10_index_element else "i10-Index not found"
 
+
+        # Fetching yearly citations based on the histogram graph that is provided by the google scholar web app
+            yearly_citations = {}
+            
+            try:
+                # Extracting the Graph Element
+                graph_element = soup.find('div', {'id': 'gsc_rsb_cit'})
+                if graph_element:
+           
+                    bar_elements = graph_element.find_all('span', {'class': 'gsc_g_t'}) # year
+                    value_elements = graph_element.find_all('span', {'class': 'gsc_g_al'}) # values
+                    
+                    # Iterating over the bars and values to extract the year and citation count
+                    
+                    for year_element, count_element in zip(bar_elements, value_elements):
+                        year = int(year_element.text.strip())
+                        count = int(count_element.text.strip())
+
+                        # Conditions
+                        
+                        if 2020 <= year <= 2024:
+                            yearly_citations[str(year)] = count 
+                            
+            except Exception as e:
+                print(f"An error occurred while fetching yearly citations: {e}")
+                
             # Returning the data
             
             return {
-                'Name': name,
-                'Citations': citations,
-                'H_Index': h_index,
-                'i10_Index': i10_index
-            }
+                    'Name': name,
+                    'Citations': citations,
+                    'H_Index': h_index,
+                    'i10_Index': i10_index,
+                    'Yearly_Citations': yearly_citations
+                }
+            
         else:
             print(f"Failed to fetch data for {profile_link}")
             return None
-
-    def scrapingMultipleFaculties(self,profile_links,output_file='allFacultyDataUpdated5.xlsx'):
+        
+    def scrapingMultipleFaculties(self,profile_links,output_file='allFacultyDataUpdated.xlsx'):
         dataList = []
 
         for profile_link in profile_links:
@@ -111,4 +139,3 @@ profile_links = [
 
 scraper = GoogleScholarScraper()
 scraper.scrapingMultipleFaculties(profile_links)
-
